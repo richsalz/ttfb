@@ -1,4 +1,5 @@
 ttfb
+ttfb.[13]*
 openssl-build-log.txt
-openssl
 *.swp
+openssl/
