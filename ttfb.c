@@ -25,7 +25,9 @@
 #include <netdb.h>
 
 #include <openssl/err.h>
-#include <openssl/provider.h>
+#ifdef OPENSSL_30
+# include <openssl/provider.h>
+#endif
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
 
@@ -111,7 +113,9 @@ int main(int ac, char **av)
     const char *port = "4433";
     const char *query = NULL;
     const char *load = NULL;
+#ifdef OPENSSL_30
     OSSL_PROVIDER *prov;
+#endif
     BIO_ADDRINFO *sai;
 
     /* Parse JCL. */
@@ -130,6 +134,9 @@ int main(int ac, char **av)
                 keyfile = optarg;
                 break;
             case 'l':
+#ifndef OPENSSL_30
+		fprintf(stderr, "Warning: -l option ignored pre-3.0\n");
+#endif
                 load = optarg;
                 break;
             case 'p':
@@ -139,6 +146,9 @@ int main(int ac, char **av)
                 break;
             case 'q':
                 query = optarg;
+#ifndef OPENSSL_30
+		fprintf(stderr, "Warning: -q option ignored pre-3.0\n");
+#endif
                 break;
             case 'r':
                 if ((repeats = atoi(optarg)) <= 0)
@@ -158,6 +168,7 @@ int main(int ac, char **av)
         keyfile = certfile;
 
     /* If provider given, load it. */
+#ifdef OPENSSL_30
     if (load != NULL) {
         prov = OSSL_PROVIDER_load(NULL, load);
         if (prov == NULL) {
@@ -166,16 +177,25 @@ int main(int ac, char **av)
             failed("to load provider");
         }
     }
+#endif
 
     /* Init socket facility. */
     if (BIO_sock_init() != 1)
         failed("to BIO_sock_init");
 
     /* Create the server and client SSL_CTX */
+#ifdef OPENSSL_30
     server_ctx = SSL_CTX_new_ex(NULL, query, TLS_server_method());
+#else
+    server_ctx = SSL_CTX_new(TLS_server_method());
+#endif
     if (server_ctx == NULL)
         failed("to create server_ctx");
+#ifdef OPENSSL_30
     client_ctx = SSL_CTX_new_ex(NULL, query, TLS_client_method());
+#else
+    client_ctx = SSL_CTX_new(TLS_client_method());
+#endif
     if (client_ctx == NULL)
         failed("to create client_ctx");
 

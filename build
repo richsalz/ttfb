@@ -1,0 +1,41 @@
+#! /bin/sh
+
+SIMPLE=`echo $1 | tr -dc [0-9]`
+shift
+case "$SIMPLE" in
+102) 
+    B=OpenSSL_1_0_2-stable
+    D=-DOPENSSL_102
+    ;;
+110) 
+    B=OpenSSL_1_1_0-stable
+    D=-DOPENSSL_110
+    ;;
+111) 
+    B=OpenSSL_1_1_1-stable
+    D=-DOPENSSL_111
+    ;;
+3 | 30 | 300)
+    B=openssl-3.0
+    D=-DOPENSSL_30
+    ;;
+*)
+    echo Unknown version -- 1.1.0 or 1.1.1 or 3.0 1>&2
+    exit 1
+    ;;
+esac
+
+echo Fetching openssl
+rm -rf openssl
+git submodule update
+echo Config and building openssl
+cd openssl
+git checkout $B || exit 1
+./config $*
+make -s clean
+rm -f libssl.a libcrypto.a
+make -s build_libs #>../openssl-build-log.txt 2>&1
+cd ..
+
+set -x
+gcc -Iopenssl/include $D -o ttfb ttfb.c openssl/libssl.a openssl/libcrypto.a
