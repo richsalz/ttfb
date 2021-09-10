@@ -31,7 +31,7 @@
 #include <openssl/ssl.h>
 #include <openssl/bio.h>
 
-static const char *certfile = "server.pem";
+static const char *certfile = "openssl/apps/server.pem";
 static const char *keyfile;
 static SSL_CTX *server_ctx;
 static SSL_CTX *client_ctx;
